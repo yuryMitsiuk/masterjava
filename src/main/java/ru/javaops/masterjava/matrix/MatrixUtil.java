@@ -22,16 +22,42 @@ public class MatrixUtil {
     public static int[][] singleThreadMultiply(int[][] matrixA, int[][] matrixB) {
         final int matrixSize = matrixA.length;
         final int[][] matrixC = new int[matrixSize][matrixSize];
+        int[] thatColumn = new int[matrixSize];
 
-        for (int i = 0; i < matrixSize; i++) {
-            for (int j = 0; j < matrixSize; j++) {
-                int sum = 0;
+        try {
+            for (int j = 0; ; j++) {
                 for (int k = 0; k < matrixSize; k++) {
-                    sum += matrixA[i][k] * matrixB[k][j];
+                    thatColumn[k] = matrixB[k][j];
                 }
-                matrixC[i][j] = sum;
+
+                for (int i = 0; i < matrixSize; i++) {
+                    int thisRow[] = matrixA[i];
+                    int sum = 0;
+                    for (int k = 0; k < matrixSize; k++) {
+                        sum += thisRow[k] * thatColumn[k];
+                    }
+                    matrixC[i][j] = sum;
+                }
             }
-        }
+        } catch (IndexOutOfBoundsException ignored) { }
+
+//        Remember about cache.
+//        Used transparent matrix (matrixB)
+//        for (int i = 0; i < matrixB.length; i++) {
+//            for (int j =  0; j < matrixB.length; j++) {
+//                matrixB[j][i] = matrixB[i][j];
+//            }
+//        }
+//
+//        for (int i = 0; i < matrixSize; i++) {
+//            for (int j = 0; j < matrixSize; j++) {
+//                int sum = 0;
+//                for (int k = 0; k < matrixSize; k++) {
+//                    sum += matrixA[i][k] * matrixB[j][k];
+//                }
+//                matrixC[i][j] = sum;
+//            }
+//        }
         return matrixC;
     }
 
