@@ -1,8 +1,11 @@
 package ru.javaops.masterjava.matrix;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * gkislin
@@ -11,11 +14,40 @@ import java.util.concurrent.ExecutorService;
 public class MatrixUtil {
 
     // TODO implement parallel multiplication matrixA*matrixB
-    public static int[][] concurrentMultiply(int[][] matrixA, int[][] matrixB, ExecutorService executor) throws InterruptedException, ExecutionException {
+    public static int[][] concurrentMultiply(int[][] matrixA, int[][] matrixB, ExecutorService executor) {
+        final CompletionService<?> service = new ExecutorCompletionService<>(executor);
         final int matrixSize = matrixA.length;
+        final int[][] matrixBT = transform(matrixB);
         final int[][] matrixC = new int[matrixSize][matrixSize];
+        final List<Future<?>> futureList = new ArrayList<>();
+        for (int i = 0; i < matrixSize; i++) {
+            final int rowIndex = i;
+            Future<?> future = service.submit(() -> calculateRow(matrixA[rowIndex], matrixBT, matrixC, rowIndex), null);
+            futureList.add(future);
+        }
+        while (!futureList.isEmpty()) {
+            futureList.remove(service.poll());
+        }
+
+//        try {
+//            new ForkJoinPool(8).submit(() -> IntStream.range(0, matrixSize).parallel().forEach((rowIndex) -> calculateRow(matrixA[rowIndex], matrixBT, matrixC, rowIndex))).get();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        } catch (ExecutionException e) {
+//            e.printStackTrace();
+//        }
 
         return matrixC;
+    }
+
+    private static void calculateRow(final int[] row1, final int[][] row2, final int[][] resultMatrix, int rowIndex) {
+        for (int i = 0; i < row1.length; i++) {
+            int summ = 0;
+            for (int j = 0; j < row2.length; j++) {
+                summ += row1[j]*row2[i][j];
+            }
+            resultMatrix[rowIndex][i] = summ;
+        }
     }
 
     // TODO optimize by https://habrahabr.ru/post/114797/
@@ -78,10 +110,22 @@ public class MatrixUtil {
         for (int i = 0; i < matrixSize; i++) {
             for (int j = 0; j < matrixSize; j++) {
                 if (matrixA[i][j] != matrixB[i][j]) {
+                    System.out.println("matrixA["+i+"]["+j+"] = "+matrixA[i][j]);
+                    System.out.println("matrixB["+i+"]["+j+"] = "+matrixB[i][j]);
+                    System.out.println();
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    private static int[][] transform(int[][] matrix) {
+        int[][] transformed = new int[matrix[0].length][matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[0].length; j++)
+                transformed[j][i] = matrix[i][j];
+        }
+        return transformed;
     }
 }
