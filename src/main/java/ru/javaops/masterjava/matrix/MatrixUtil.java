@@ -110,9 +110,6 @@ public class MatrixUtil {
         for (int i = 0; i < matrixSize; i++) {
             for (int j = 0; j < matrixSize; j++) {
                 if (matrixA[i][j] != matrixB[i][j]) {
-                    System.out.println("matrixA["+i+"]["+j+"] = "+matrixA[i][j]);
-                    System.out.println("matrixB["+i+"]["+j+"] = "+matrixB[i][j]);
-                    System.out.println();
                     return false;
                 }
             }
